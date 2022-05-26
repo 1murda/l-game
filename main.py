@@ -185,7 +185,7 @@ def find_posible_l(board: dict, turn: str) -> list:
             l_posibles.remove(l)                       #
 #######################################################
 
-# elimino de las posibles L a la L actual del jugador
+# elimino de las posibles L a las coordenadas de la L actual del jugador
     actual_l_pos: list = []
 
     for slot, value in board.items():
@@ -215,25 +215,28 @@ def change_l_pos(board: dict, pos: list, turn: str) -> None:
 
 
 def move_neutral(board: dict, turn: str) -> None:
-    show_board(board)
+    print("Desea mover una ficha neutral? (s/n)")
+    move: str = validate_option(['s','n'])
 
-    print("Ingrese 1 para mover la ficha neutral '1' o 2 para la ficha '2'")
-    option: str = validate_option(['1','2'])
+    if (move == 's'):
 
-    for slot, value in board.items():
-        if (value == option):
-            board[slot] = ' '
-    
-    print("Ingrese la posicion a donde desee mover la ficha neutral")
-    move_to: str = validate_option(board.keys())
-    
-    while (board[move_to] != ' '):
-        print("Esa posición no esta disponible, intente con otra")
-        move_to = validate_option(board.keys())
+        print("Ingrese 1 para mover la ficha neutral '1' o 2 para la ficha '2'")
+        option: str = validate_option(['1','2'])
 
-    for slot in board:
-        if (slot == move_to):
-            board[slot] = option
+        for slot, value in board.items():
+            if (value == option):
+                board[slot] = ' '
+        
+        print("Ingrese la posicion a donde desee mover la ficha neutral")
+        move_to: str = validate_option(board.keys())
+        
+        while (board[move_to] != ' '):
+            print("Esa posición no esta disponible, intente con otra")
+            move_to = validate_option(board.keys())
+
+        for slot in board:
+            if (slot == move_to):
+                board[slot] = option
 
 
 
@@ -242,8 +245,10 @@ def play(board: dict) -> str:
     winner: str = ''
     
     playing: bool = True
+    movements_counter: int = 18
     
     while (playing):
+        movements_counter += 1
         turn = turns(turn)
         posible_ls: list = find_posible_l(board, turn)
 
@@ -265,10 +270,10 @@ def play(board: dict) -> str:
             playing = False
             
         else:
-            input(posible_ls)
+    
             show_board(board)
             print(f"Turno del jugador {turn}")
-            print("Ingrese las posiciones donde desea ubicar su L separando los casilleros por una coma: ")
+            print("Ingrese las coordenadas en donde desea ubicar su L separandolas por una coma: ")
             print("Ejemplo: a1,a2,a3,b1")
             
             movement: list = input("->").split(",")
@@ -279,7 +284,7 @@ def play(board: dict) -> str:
 
             while (index_l == ''):
                 show_board(board)
-                print(posible_ls)
+                print(f"Turno del jugador {turn}")
                 print("Ese movimiento no es posible, intente con otro.")
                 print("Ejemplo: a1,a2,a3,b1")
                 movement: list = input("->").split(",")
@@ -287,34 +292,109 @@ def play(board: dict) -> str:
 
             change_l_pos(board, movement, turn)
             show_board(board)
-            move_neutral(board, turn)
+            
+            #modo muerte súbita
+            if (movements_counter >= 20):
+                show_board(board)
+                print("El juego entro en fase muerte subita!")
+                print("Cada jugador ahora luego de mover su L puede mover 2 fichas neutrales si lo desea")
+                move_neutral(board, turn)
+                move_neutral(board, turn)
+            
+            else:
+                show_board(board)
+                move_neutral(board, turn)
+                
 
     return winner
         
         
 
 
-
-
 def show_board(board: list) -> None:
     cls()
+    red: str = Fore.RED
+    blue: str = Fore.BLUE
+    black: str = Fore.BLACK
+    
+    board_aux: dict = {}
+
+    for k, v in board.items():
+        board_aux[k] = v
+
+    for k, v in board_aux.items():
+        if (v == 'R'):
+            board_aux[k] = red + v + Fore.RESET
+
+        elif (v == 'B'):
+            board_aux[k] = blue + v + Fore.RESET
+
+        elif (v in ['1','2']):
+            board_aux[k] = black + v + Fore.RESET
+
+        
+
     print(f"""
       A       B      C      D
      ___________________________
     |      |      |      |      |
- 1  |  {board['a1']}   |   {board['b1']}  |  {board['c1']}   |  {board['d1']}   |
+ 1  |  {board_aux['a1']}   |   {board_aux['b1']}  |  {board_aux['c1']}   |  {board_aux['d1']}   |
     |______|______|______|______|
     |      |      |      |      |
- 2  |  {board['a2']}   |   {board['b2']}  |  {board['c2']}   |  {board['d2']}   |
+ 2  |  {board_aux['a2']}   |   {board_aux['b2']}  |  {board_aux['c2']}   |  {board_aux['d2']}   |
     |______|______|______|______|
     |      |      |      |      |
- 3  |  {board['a3']}   |   {board['b3']}  |  {board['c3']}   |  {board['d3']}   |
+ 3  |  {board_aux['a3']}   |   {board_aux['b3']}  |  {board_aux['c3']}   |  {board_aux['d3']}   |
     |______|______|______|______|
     |      |      |      |      |
- 4  |  {board['a4']}   |   {board['b4']}  |  {board['c4']}   |  {board['d4']}   |
+ 4  |  {board_aux['a4']}   |   {board_aux['b4']}  |  {board_aux['c4']}   |  {board_aux['d4']}   |
     |______|______|______|______| 
      
     """)
+
+
+
+def show_past_4_scores(scores_history: list) -> None:
+    cls()
+    players_info: dict = {'Azul': 0, 'Rojo': 0}
+    # doy vuelta la lista ya que los ultimos scores almacenan en 'scores_history' -
+    # en las ultimas posiciones de la lista
+    scores_history.reverse()
+    last_4_scores: list = []
+
+    if (len(scores_history) >= 4):
+
+        for i in range(0,4):
+            last_4_scores.append(scores_history[i])
+    else:
+
+        for score in scores_history:
+            last_4_scores.append(score)
+
+    for score in last_4_scores:
+
+        if (score == 'R'):
+            players_info['Rojo'] += 1
+        else:
+            players_info['Azul'] += 1
+
+    #ordeno los scores por el jugador con mas victorias
+    info_ordered: list = sorted(players_info.items(), key=lambda x: x[1], reverse=True)
+
+
+    
+    print(f"""
+ ____________________________
+|      ULTIMOS 4 SCORES      |      
+|                            |
+| Jugador  Partidas ganadas  |
+|                            |
+| {info_ordered[0][0]}   -   {info_ordered[0][1]}               |
+| {info_ordered[1][0]}   -   {info_ordered[1][1]}               |
+|                            |
+ ----------------------------
+    """)
+    input("Pulse ENTER para volver al menu ")
 
     
 
@@ -364,7 +444,7 @@ def main() -> None:
             scores_history.append(game_info)
 
         elif (option == '2'):
-            input(scores_history)
+            show_past_4_scores(scores_history)
 
         elif (option == '3'):
             flag = False
