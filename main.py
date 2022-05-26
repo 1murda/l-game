@@ -16,7 +16,7 @@ def validate_option(options: list) -> int:
     option: int = input("-> ")
 
     while(option not in options):
-        option = input("Please, enter a valid option: ")
+        option = input("Opción invalida, intente nuevamente: ")
 
     return option
 
@@ -24,15 +24,15 @@ def validate_option(options: list) -> int:
 def turns(past_turn: str) -> str:
 
     if (past_turn == ''):
-        turn: int = random.choice(['blue','red'])
+        turn: int = random.choice(['B', 'R'])
 
     else:
 
-        if (past_turn == 'red'):
-            turn = 'blue'
+        if (past_turn == 'R'):
+            turn = 'B'
 
         else:
-            turn = 'red'
+            turn = 'R'
 
     return turn
 
@@ -78,7 +78,7 @@ def check_rows_l(board: dict, able_rows: list, l_posibles: list, able_slots) -> 
                 #checkeo si la secuencia esta en la primera row o en la ultima
         if (row[0] in ['a1','b1', 'a4', 'b4']):
             if (row[0] == 'a1'):
-                check_slots(board, row, ['a2','b2','c2'],l_posibles, able_slots)
+                check_slots(board, row, ['a2','b2','c2'], l_posibles, able_slots)
                                 
             elif (row[0] == 'b1'): 
                 check_slots(board, row, ['b2','c2','d2'], l_posibles, able_slots)
@@ -96,7 +96,7 @@ def check_rows_l(board: dict, able_rows: list, l_posibles: list, able_slots) -> 
             
             if (row[0][0] == 'a'): 
                 # checkea los slots disponibles para completar la L en la row de arriba
-                # y en la de abajo de la secuencia
+                # y en la row de abajo de la secuencia de 3
                 down_next_row = [f'a{n_row + 1}',f'b{n_row + 1}',f'c{n_row + 1}']
                 up_next_row = [f'a{n_row - 1}',f'b{n_row - 1}',f'c{n_row - 1}']
 
@@ -109,6 +109,7 @@ def check_rows_l(board: dict, able_rows: list, l_posibles: list, able_slots) -> 
 
                 check_slots(board, row, down_next_row, l_posibles, able_slots)
                 check_slots(board, row, up_next_row, l_posibles, able_slots)
+
 
 
 def check_columns_l(board: dict, able_columns: list, l_posibles: list, able_slots) -> None:
@@ -137,53 +138,160 @@ def check_columns_l(board: dict, able_columns: list, l_posibles: list, able_slot
         elif (col[0][0] == 'd'):
             left_next_col = [f'c{n_col}',f'c{n_col + 1}',f'c{n_col + 2}']
             check_slots(board, col, left_next_col, l_posibles, able_slots)
+ 
 
 
-def clean_l(l_posibles: list) -> None:
-    # eliminan las secuencias que no forman una L
-    #   ej:  o
-    #        o o
-    #        o
+def is_l_in_posibles_l(pos: list, l_list: list) -> str:
+    # busco si la L pasada por parametros se encuentra en las L posibles
+    # devuelvo el indice en donde se encuentra la L en la lista
+    # si no la encuentra devuelve 00
+    index: str = ''
+
+    for l_index, l in enumerate(l_list):
+
+        if (len(pos) == 4):
+
+            if (pos[0] in l and pos[1] in l and pos[2] in l and pos[3] in l):
+                return str(l_index)
     
-    for l in l_posibles:
-        if (l[1][1] == l[3][1] or l[1][0] == l[3][0]):
-            l_posibles.remove(l)
-            
+    return index
+
+
 
 
 def find_posible_l(board: dict, turn: str) -> list:
     slots_ables: list = []
     l_posibles: list = []
 
-    if (turn == 'blue'):
-        able_slots = ['blue','void']
+    if (turn == 'R'):
+        able_slots = ['R',' ']
 
     else:
-        able_slots = ['red','void']
+        able_slots = ['B',' ']
 
     row_able_secuences: list = check_able_rows(board, able_slots)
     column_able_secuences: list = check_able_columns(board, able_slots)
 
     check_rows_l(board, row_able_secuences, l_posibles, able_slots)
     check_columns_l(board, column_able_secuences, l_posibles, able_slots)
-    clean_l(l_posibles)
+    
+# elimino las secuencias que no forman una L
+#   ej:  o
+#        o o
+#        o
+                                                       #
+    for l in l_posibles:                               #
+        if (l[1][1] == l[3][1] or l[1][0] == l[3][0]): #
+            l_posibles.remove(l)                       #
+#######################################################
 
+# elimino de las posibles L a la L actual del jugador
+    actual_l_pos: list = []
+
+    for slot, value in board.items():
+
+        if (value == turn):
+            actual_l_pos.append(slot)
+
+    l_index: str = is_l_in_posibles_l(actual_l_pos, l_posibles)
+
+    if (l_index != ''):
+        l_posibles.remove(l_posibles[int(l_index)])
 
     return l_posibles
 
 
-def play(board: dict) -> None:
+
+
+def change_l_pos(board: dict, pos: list, turn: str) -> None:
+    # primero limpio la posicion anterior de la L en el board
+    for slot, value in board.items():
+        if value == turn:
+            board[slot] = ' '
+        
+    for slot in pos:
+        board[slot] = turn
+    
+
+
+def move_neutral(board: dict, turn: str) -> None:
+    show_board(board)
+
+    print("Ingrese 1 para mover la ficha neutral '1' o 2 para la ficha '2'")
+    option: str = validate_option(['1','2'])
+
+    for slot, value in board.items():
+        if (value == option):
+            board[slot] = ' '
+    
+    print("Ingrese la posicion a donde desee mover la ficha neutral")
+    move_to: str = validate_option(board.keys())
+    
+    while (board[move_to] != ' '):
+        print("Esa posición no esta disponible, intente con otra")
+        move_to = validate_option(board.keys())
+
+    for slot in board:
+        if (slot == move_to):
+            board[slot] = option
+
+
+
+def play(board: dict) -> str:
     turn: str = ''
-    turn = turns(turn)
+    winner: str = ''
+    
     playing: bool = True
     
     while (playing):
-        show_board(board)
-        print("Ingrese las posiciones donde desea ubicar su L separando los casilleros por una coma: ")
-        print("Ejemplo: a1,a2,a3,b1")
-        movement: list = input("->").split(",")
-        print(movement)
-        input()
+        turn = turns(turn)
+        posible_ls: list = find_posible_l(board, turn)
+
+        # si no hay movimientos de L posibles termina el juego
+        if (len(posible_ls) == 0):
+            
+            if (turn == 'R'):
+                show_board(board)
+                print("No quedan movimientos disponibles, el jugador azul gana.")
+                input("Pulse ENTER para volver al menu ")
+                winner = 'B'
+            
+            else:
+                show_board(board)
+                print("No quedan movimientos disponibles, el jugador rojo gana.")
+                input("Pulse ENTER para volver al menu ")
+                winner = 'R'
+            
+            playing = False
+            
+        else:
+            input(posible_ls)
+            show_board(board)
+            print(f"Turno del jugador {turn}")
+            print("Ingrese las posiciones donde desea ubicar su L separando los casilleros por una coma: ")
+            print("Ejemplo: a1,a2,a3,b1")
+            
+            movement: list = input("->").split(",")
+            
+            
+
+            index_l: str = is_l_in_posibles_l(movement, posible_ls)
+
+            while (index_l == ''):
+                show_board(board)
+                print(posible_ls)
+                print("Ese movimiento no es posible, intente con otro.")
+                print("Ejemplo: a1,a2,a3,b1")
+                movement: list = input("->").split(",")
+                index_l: str = is_l_in_posibles_l(movement, posible_ls)
+
+            change_l_pos(board, movement, turn)
+            show_board(board)
+            move_neutral(board, turn)
+
+    return winner
+        
+        
 
 
 
@@ -200,10 +308,10 @@ def show_board(board: list) -> None:
  2  |  {board['a2']}   |   {board['b2']}  |  {board['c2']}   |  {board['d2']}   |
     |______|______|______|______|
     |      |      |      |      |
- 3  |  {board['a2']}   |   {board['b3']}  |  {board['c3']}   |  {board['d3']}   |
+ 3  |  {board['a3']}   |   {board['b3']}  |  {board['c3']}   |  {board['d3']}   |
     |______|______|______|______|
     |      |      |      |      |
- 4  |  {board['a2']}   |   {board['b4']}  |   {board['c4']}  |  {board['d4']}   |
+ 4  |  {board['a4']}   |   {board['b4']}  |  {board['c4']}   |  {board['d4']}   |
     |______|______|______|______| 
      
     """)
@@ -211,44 +319,55 @@ def show_board(board: list) -> None:
     
 
 def main() -> None:
-    v = ' ' # able slot
-    r = 'R' # red player
-    b = 'B' # blue pĺayer
-    n = 'N' # neutral
+    v : str= ' ' # Slot disponible
+    r: str = 'R' # Slot rojo
+    b: str = 'B' # Slot azul
+    n_1: str = '1' # Ficha neutral 1
+    n_2: str = '2' # Ficha neutral 2
 
-    board = {   
-                'a1': n, 'b1': r,'c1': r, 'd1': v,
-                'a2': v, 'b2': b,'c2': r, 'd2': v,
-                'a3': v, 'b3': b,'c3': r, 'd3': v,
-                'a4': v, 'b4': b,'c4': b, 'd4': n 
-            }
 
     scores_history: list = []
 
     flag: bool = True
+    
 
     while(flag):
+        board = {   
+                'a1': n_1, 'b1': r,'c1': r, 'd1': v,
+                'a2': v, 'b2': b,'c2': r, 'd2': v,
+                'a3': v, 'b3': b,'c3': r, 'd3': v,
+                'a4': v, 'b4': b,'c4': b, 'd4': n_2 
+            }
         cls()
-        turn: int = 0
+
         print("""
-        1) Play a new game
-        2) Show past 3 game scores
-        3) Quit""")
+    ╔╗        ╔═══╗╔═══╗╔═╗╔═╗╔═══╗
+    ║║        ║╔═╗║║╔═╗║║║╚╝║║║╔══╝
+    ║║        ║║ ╚╝║║ ║║║╔╗╔╗║║╚══╗
+    ║║ ╔╗╔═══╗║║╔═╗║╚═╝║║║║║║║║╔══╝
+    ║╚═╝║╚═══╝║╚╩═║║╔═╗║║║║║║║║╚══╗
+    ╚═══╝     ╚═══╝╚╝ ╚╝╚╝╚╝╚╝╚═══╝              
+    """)
+
+        
+        print("""
+[1] Empezar una nueva partida
+[2] Mostrar los ultimos 3 scores
+[3] Salir
+""")    
+        turn: int = 0
         option: str = validate_option(['1', '2', '3'])
        
         if (option == '1'):
-            # l_posible: list = find_posible_l(board, turn)
             show_board(board)
             game_info: list = play(board)
             scores_history.append(game_info)
 
-        elif (option == '1'):
-            pass
+        elif (option == '2'):
+            input(scores_history)
 
-        else:
+        elif (option == '3'):
             flag = False
     
-
-
 
 main()
