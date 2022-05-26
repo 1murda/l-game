@@ -38,6 +38,12 @@ def turns(past_turn: str) -> str:
 
 
 def check_able_rows(board: dict, ables: list) -> list:
+
+    """ Busca las secuencias de 3 slots seguidos disponibles en las 4 rows
+
+    Returns:
+        list: Secuencias encontradas
+    """
     posible_rows: list = []
 
     for i in range(1,5):
@@ -52,9 +58,15 @@ def check_able_rows(board: dict, ables: list) -> list:
 
 
 def check_able_columns(board: dict, ables: list) -> list:
+    """ Busca las secuencias de 3 slots seguidos disponibles en forma vertical
+
+    Returns:
+        list: Secuencias encontradas
+    """
     posible_columns: list = []
 
     for w in ['a','b','c','d']:
+
         if (board[f'{w}1'] in ables and board[f'{w}2'] in ables and board[f'{w}3'] in ables):
             posible_columns.append([f'{w}1',f'{w}2',f'{w}3'])
             
@@ -64,30 +76,47 @@ def check_able_columns(board: dict, ables: list) -> list:
     return posible_columns
     
 
-def check_slots(board: dict, row: list, places: list, l_posibles: list, able_slots: list) -> None:
-    # recibe una lista con los slots que se desea verificar si estan disponibles
-    # para completar la L, si lo encuentra agrega la posible L a posibles_places
+def check_slots(board: dict, row: list, places: list, posible_ls: list, able_slots: list) -> None:
+    """ Recibe una lista con los slots que se desea verificar si estan disponibles
+        para completar la L, si lo encuentra agrega la posible L a posibles_places
+
+    Args:
+        board (dict): tablero
+        row (list): fila que se desea verificar
+        places (list): fila siguiente a la row en la que se busca el slot disponible
+        posible_ls (list): lista con las L posibles
+        able_slots (list): slots disponibles segun el turno
+    """
     for s in places:
+
         if (board[s] in able_slots):
-            l_posibles.append(row + [s])
+            posible_ls.append(row + [s])
     
 
 
-def check_rows_l(board: dict, able_rows: list, l_posibles: list, able_slots) -> None:
+def check_rows_l(board: dict, able_rows: list, posible_ls: list, able_slots) -> None:
+    """ Busca las L's completas que se pueden posicionar y las almacena en 'posible_ls'
+
+    Args:
+        able_rows (list): Lista con las secuencias de 3 slots seguidos en forma
+        horizontal
+    """
+
     for row in able_rows:
                 #checkeo si la secuencia esta en la primera row o en la ultima
         if (row[0] in ['a1','b1', 'a4', 'b4']):
+
             if (row[0] == 'a1'):
-                check_slots(board, row, ['a2','b2','c2'], l_posibles, able_slots)
+                check_slots(board, row, ['a2','b2','c2'], posible_ls, able_slots)
                                 
             elif (row[0] == 'b1'): 
-                check_slots(board, row, ['b2','c2','d2'], l_posibles, able_slots)
+                check_slots(board, row, ['b2','c2','d2'], posible_ls, able_slots)
                     
             elif (row[0] == 'a4'):
-                check_slots(board, row, ['a3','b3','c3'], l_posibles, able_slots)
+                check_slots(board, row, ['a3','b3','c3'], posible_ls, able_slots)
             
             else:
-                check_slots(board, row, ['b3', 'c3', 'd3'], l_posibles, able_slots)
+                check_slots(board, row, ['b3', 'c3', 'd3'], posible_ls, able_slots)
                         
         else:
             n_row: int = int(row[0][1]) #numero de row
@@ -100,19 +129,23 @@ def check_rows_l(board: dict, able_rows: list, l_posibles: list, able_slots) -> 
                 down_next_row = [f'a{n_row + 1}',f'b{n_row + 1}',f'c{n_row + 1}']
                 up_next_row = [f'a{n_row - 1}',f'b{n_row - 1}',f'c{n_row - 1}']
 
-                check_slots(board, row, down_next_row, l_posibles, able_slots)
-                check_slots(board, row, up_next_row, l_posibles, able_slots)
+                check_slots(board, row, down_next_row, posible_ls, able_slots)
+                check_slots(board, row, up_next_row, posible_ls, able_slots)
             
             else:
                 down_next_row = [f'b{n_row + 1}',f'c{n_row + 1}',f'd{n_row + 1}']
                 up_next_row = [f'b{n_row + 1}',f'c{n_row + 1}',f'd{n_row + 1}']
 
-                check_slots(board, row, down_next_row, l_posibles, able_slots)
-                check_slots(board, row, up_next_row, l_posibles, able_slots)
+                check_slots(board, row, down_next_row, posible_ls, able_slots)
+                check_slots(board, row, up_next_row, posible_ls, able_slots)
 
 
 
-def check_columns_l(board: dict, able_columns: list, l_posibles: list, able_slots) -> None:
+def check_columns_l(board: dict, able_columns: list, posible_ls: list, able_slots) -> None:
+    """ Similar a la funcion 'check_row_l' busca las L posibles 
+        teniendo la secuencia de 3 slots en forma vertical
+
+    """
     right_next_col: list = []
     left_next_col: list = []
 
@@ -121,33 +154,40 @@ def check_columns_l(board: dict, able_columns: list, l_posibles: list, able_slot
         
         if (col[0][0] == 'a'):
             right_next_col = [f'b{n_col}',f'b{n_col + 1}',f'b{n_col + 2}']
-            check_slots(board, col, right_next_col, l_posibles, able_slots)
+            check_slots(board, col, right_next_col, posible_ls, able_slots)
         
         elif (col[0][0] == 'b'):
             left_next_col = [f'a{n_col}',f'a{n_col + 1}',f'a{n_col + 2}']
             right_next_col = [f'c{n_col}',f'c{n_col + 1}',f'c{n_col + 2}']
-            check_slots(board, col, left_next_col, l_posibles, able_slots)
-            check_slots(board, col, right_next_col, l_posibles, able_slots)
+            check_slots(board, col, left_next_col, posible_ls, able_slots)
+            check_slots(board, col, right_next_col, posible_ls, able_slots)
 
         elif (col[0][0] == 'c'):
             right_next_col = [f'd{n_col}',f'd{n_col + 1}',f'd{n_col + 2}']
             left_next_col = [f'b{n_col}',f'b{n_col + 1}',f'b{n_col + 2}']
-            check_slots(board, col, right_next_col, l_posibles, able_slots)
-            check_slots(board, col, left_next_col, l_posibles, able_slots)
+            check_slots(board, col, right_next_col, posible_ls, able_slots)
+            check_slots(board, col, left_next_col, posible_ls, able_slots)
 
         elif (col[0][0] == 'd'):
             left_next_col = [f'c{n_col}',f'c{n_col + 1}',f'c{n_col + 2}']
-            check_slots(board, col, left_next_col, l_posibles, able_slots)
+            check_slots(board, col, left_next_col, posible_ls, able_slots)
  
 
 
-def is_l_in_posibles_l(pos: list, l_list: list) -> str:
-    # busco si la L pasada por parametros se encuentra en las L posibles
-    # devuelvo el indice en donde se encuentra la L en la lista
-    # si no la encuentra devuelve 00
+def is_l_in_posibles_l(pos: list, posible_ls: list) -> str:
+    """ Verifica si una posicion de L esta en posible_ls
+        si no la encuentra devuelve un str vacio
+
+    Args:
+        pos (list): Coordenadas que se quieren validar
+        posible_ls (list): Lista con todas las combinaciones posibles
+
+    Returns:
+        str: El indice en donde se encuentra esa posicion en posible_ls
+    """
     index: str = ''
 
-    for l_index, l in enumerate(l_list):
+    for l_index, l in enumerate(posible_ls):
 
         if (len(pos) == 4):
 
@@ -159,9 +199,9 @@ def is_l_in_posibles_l(pos: list, l_list: list) -> str:
 
 
 
-def find_posible_l(board: dict, turn: str) -> list:
+def find_posible_ls(board: dict, turn: str) -> list:
     slots_ables: list = []
-    l_posibles: list = []
+    posible_ls: list = []
 
     if (turn == 'R'):
         able_slots = ['R',' ']
@@ -172,17 +212,17 @@ def find_posible_l(board: dict, turn: str) -> list:
     row_able_secuences: list = check_able_rows(board, able_slots)
     column_able_secuences: list = check_able_columns(board, able_slots)
 
-    check_rows_l(board, row_able_secuences, l_posibles, able_slots)
-    check_columns_l(board, column_able_secuences, l_posibles, able_slots)
+    check_rows_l(board, row_able_secuences, posible_ls, able_slots)
+    check_columns_l(board, column_able_secuences, posible_ls, able_slots)
     
 # elimino las secuencias que no forman una L
 #   ej:  o
 #        o o
 #        o
                                                        #
-    for l in l_posibles:                               #
+    for l in posible_ls:                               #
         if (l[1][1] == l[3][1] or l[1][0] == l[3][0]): #
-            l_posibles.remove(l)                       #
+            posible_ls.remove(l)                       #
 #######################################################
 
 # elimino de las posibles L a las coordenadas de la L actual del jugador
@@ -193,17 +233,22 @@ def find_posible_l(board: dict, turn: str) -> list:
         if (value == turn):
             actual_l_pos.append(slot)
 
-    l_index: str = is_l_in_posibles_l(actual_l_pos, l_posibles)
+    l_index: str = is_l_in_posibles_l(actual_l_pos, posible_ls)
 
     if (l_index != ''):
-        l_posibles.remove(l_posibles[int(l_index)])
+        posible_ls.remove(posible_ls[int(l_index)])
 
-    return l_posibles
+    return posible_ls
 
 
 
 
 def change_l_pos(board: dict, pos: list, turn: str) -> None:
+    """ Cambia la posicion de la L a las coordenadas a donde se la desea mover
+
+    Args:
+        pos (list): Coordenadas a donde se la quiere mover
+    """
     # primero limpio la posicion anterior de la L en el board
     for slot, value in board.items():
         if value == turn:
@@ -215,6 +260,7 @@ def change_l_pos(board: dict, pos: list, turn: str) -> None:
 
 
 def move_neutral(board: dict, turn: str) -> None:
+
     print("Desea mover una ficha neutral? (s/n)")
     move: str = validate_option(['s','n'])
 
@@ -223,9 +269,12 @@ def move_neutral(board: dict, turn: str) -> None:
         print("Ingrese 1 para mover la ficha neutral '1' o 2 para la ficha '2'")
         option: str = validate_option(['1','2'])
 
+        # limpio la posicion actual de la ficha neutral que se quiere mover
         for slot, value in board.items():
             if (value == option):
                 board[slot] = ' '
+
+        ###################################################################
         
         print("Ingrese la posicion a donde desee mover la ficha neutral")
         move_to: str = validate_option(board.keys())
@@ -245,12 +294,12 @@ def play(board: dict) -> str:
     winner: str = ''
     
     playing: bool = True
-    movements_counter: int = 18
+    movements_counter: int = 0
     
     while (playing):
         movements_counter += 1
         turn = turns(turn)
-        posible_ls: list = find_posible_l(board, turn)
+        posible_ls: list = find_posible_ls(board, turn)
 
         # si no hay movimientos de L posibles termina el juego
         if (len(posible_ls) == 0):
@@ -277,8 +326,6 @@ def play(board: dict) -> str:
             print("Ejemplo: a1,a2,a3,b1")
             
             movement: list = input("->").split(",")
-            
-            
 
             index_l: str = is_l_in_posibles_l(movement, posible_ls)
 
@@ -296,8 +343,8 @@ def play(board: dict) -> str:
             #modo muerte súbita
             if (movements_counter >= 20):
                 show_board(board)
-                print("El juego entro en fase muerte subita!")
-                print("Cada jugador ahora luego de mover su L puede mover 2 fichas neutrales si lo desea")
+                print("El juego esta en fase muerte subita!")
+                print("Luego de mover su L puede mover 2 fichas neutrales si lo desea")
                 move_neutral(board, turn)
                 move_neutral(board, turn)
             
@@ -307,8 +354,7 @@ def play(board: dict) -> str:
                 
 
     return winner
-        
-        
+          
 
 
 def show_board(board: list) -> None:
@@ -379,7 +425,7 @@ def show_past_4_scores(scores_history: list) -> None:
             players_info['Azul'] += 1
 
     #ordeno los scores por el jugador con mas victorias
-    info_ordered: list = sorted(players_info.items(), key=lambda x: x[1], reverse=True)
+    ordered_info: list = sorted(players_info.items(), key=lambda x: x[1], reverse=True)
 
 
     
@@ -389,8 +435,8 @@ def show_past_4_scores(scores_history: list) -> None:
 |                            |
 | Jugador  Partidas ganadas  |
 |                            |
-| {info_ordered[0][0]}   -   {info_ordered[0][1]}               |
-| {info_ordered[1][0]}   -   {info_ordered[1][1]}               |
+| {ordered_info[0][0]}   -   {ordered_info[0][1]}               |
+| {ordered_info[1][0]}   -   {ordered_info[1][1]}               |
 |                            |
  ----------------------------
     """)
@@ -418,6 +464,7 @@ def main() -> None:
                 'a3': v, 'b3': b,'c3': r, 'd3': v,
                 'a4': v, 'b4': b,'c4': b, 'd4': n_2 
             }
+            
         cls()
 
         print("""
@@ -432,16 +479,15 @@ def main() -> None:
         
         print("""
 [1] Empezar una nueva partida
-[2] Mostrar los ultimos 3 scores
+[2] Mostrar los ultimos 4 resultados
 [3] Salir
 """)    
-        turn: int = 0
         option: str = validate_option(['1', '2', '3'])
        
         if (option == '1'):
             show_board(board)
-            game_info: list = play(board)
-            scores_history.append(game_info)
+            winner: str = play(board)
+            scores_history.append(winner)
 
         elif (option == '2'):
             show_past_4_scores(scores_history)
