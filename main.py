@@ -186,13 +186,24 @@ def is_l_in_posibles_l(pos: list, posible_ls: list) -> str:
         str: El indice en donde se encuentra esa posicion en posible_ls
     """
     index: str = ''
+    have_rep: bool = False
 
-    for l_index, l in enumerate(posible_ls):
+    #checkeo que no hayan posiciones repetidas en las coordenadas
+    
+    for p in pos:
+        if (pos.count(p) > 1):
+            have_rep = True
 
-        if (len(pos) == 4):
+    ###############################################################
+    
+    if (not have_rep):
+        for l_index, l in enumerate(posible_ls):
 
-            if (pos[0] in l and pos[1] in l and pos[2] in l and pos[3] in l):
-                return str(l_index)
+            if (len(pos) == 4):
+
+                if (pos[0] in l and pos[1] in l and pos[2] in l and pos[3] in l):
+                    
+                    index =  str(l_index)
     
     return index
 
@@ -464,7 +475,7 @@ def main() -> None:
                 'a3': v, 'b3': b,'c3': r, 'd3': v,
                 'a4': v, 'b4': b,'c4': b, 'd4': n_2 
             }
-            
+
         cls()
 
         print("""
