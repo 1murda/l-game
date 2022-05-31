@@ -313,39 +313,67 @@ def change_l_pos(board: dict, pos: list, turn: str) -> None:
         board[slot] = turn
     
 
-def move_neutral(board: dict, turn: str) -> None:
-    """ Recibo el board actualizado y el turno del jugador
-        y pregunto si desea mover alguna ficha neutral
+def move_neutral(board: dict, turn: str, movements_counter: int) -> None:
+    """ Recibo el board actualizado, el turno y los movimientos realizados
+        si los movimientos superan 20 el juego entra en muerte subita
 
     Args:
         board (dict): Tablero
         turn (str): Turno del jugador
+        movements_counter (int): Contador de movimientos
     """
+    able_movements: int = 0
+    move: str = ''
 
-    print("Desea mover una ficha neutral? (s/n)")
-    move: str = validate_option(['s','n'])
+    if (movements_counter < 20):
+        show_board(board)
+        print('Desea mover una ficha neutral? (s/n)')
+        move = validate_option(['s', 'n'])
+        able_movements = 1
 
+    else:
+        show_board(board)
+        print('El juego esta en modo muerte subita!')
+        print('Puede mover 2 fichas neutrales')
+        print('Desea mover una ficha neutral? (s/n)')
+        
+        move = validate_option(['s', 'n'])
+        able_movements = 2
+    
     if (move == 's'):
+        while (able_movements > 0):
+            able_movements -= 1
+            show_board(board)
 
-        print("Ingrese 1 para mover la ficha neutral '1' o 2 para la ficha '2'")
-        option: str = validate_option(['1','2'])
+            print("Ingrese 1 para mover la ficha neutral '1' o 2 para la ficha '2'")
+            option: str = validate_option(['1','2'])
 
-        # limpio la posicion actual de la ficha neutral que se quiere mover
-        for slot, value in board.items():
-            if (value == option):
-                board[slot] = ' '
+            # limpio la posicion actual de la ficha neutral que se quiere mover
+            for slot, value in board.items():
+                if (value == option):
+                    board[slot] = ' '
 
-        ###################################################################
-        
-        print("Ingrese la posicion a donde desee mover la ficha neutral")
-        move_to: str = validate_option(board.keys())
-        
-        while (board[move_to] != ' '):
-            print("Esa posición no esta disponible, intente con otra")
-            move_to = validate_option(board.keys())
+            ###################################################################
+            
+            show_board(board)
+            print("Ingrese la posicion a donde desee mover la ficha neutral")
+            move_to: str = validate_option(board.keys())
+            
+            while (board[move_to] != ' '):
+                print("Esa posición no esta disponible, intente con otra")
+                move_to = validate_option(board.keys())
 
-        # muevo la ficha neutral a la posicion ingresada
-        board[move_to] = option
+            # muevo la ficha neutral a la posicion ingresada
+            board[move_to] = option
+
+            if (able_movements == 1):
+                show_board(board)
+                print('Desea mover otra ficha neutral? (s/n)')
+                move = validate_option(['s', 'n'])
+                
+                if (move == 'n'):
+                    able_movements = 0
+
 
 
 def play(board: dict) -> str:
@@ -362,7 +390,7 @@ def play(board: dict) -> str:
     winner: str = ''
     
     playing: bool = True
-    movements_counter: int = 0
+    movements_counter: int = 18
     
     while (playing):
         show_board(board)
@@ -410,20 +438,7 @@ def play(board: dict) -> str:
 
             # actualizo el tablero con la L ingresada
             change_l_pos(board, movement, turn)
-            show_board(board)
-            
-            #   modo muerte súbita
-            if (movements_counter > 20):
-                show_board(board)
-                print("El juego esta en fase muerte subita!")
-                print("Luego de mover su L puede mover 2 fichas neutrales si lo desea")
-                move_neutral(board, turn)
-                move_neutral(board, turn)
-            #############################
-
-            else:
-                show_board(board)
-                move_neutral(board, turn)
+            move_neutral(board, turn, movements_counter)
                 
     return winner
           
