@@ -341,7 +341,9 @@ def move_neutral(board: dict, turn: str, movements_counter: int) -> None:
         able_movements = 2
     
     if (move == 's'):
+
         while (able_movements > 0):
+
             able_movements -= 1
             show_board(board)
 
@@ -350,11 +352,12 @@ def move_neutral(board: dict, turn: str, movements_counter: int) -> None:
 
             # limpio la posicion actual de la ficha neutral que se quiere mover
             for slot, value in board.items():
+
                 if (value == option):
                     board[slot] = ' '
 
             ###################################################################
-            
+
             show_board(board)
             print("Ingrese la posicion a donde desee mover la ficha neutral")
             move_to: str = validate_option(board.keys())
@@ -390,7 +393,7 @@ def play(board: dict) -> str:
     winner: str = ''
     
     playing: bool = True
-    movements_counter: int = 18
+    movements_counter: int = 0
     
     while (playing):
         show_board(board)
