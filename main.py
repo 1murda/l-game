@@ -2,9 +2,14 @@ import random
 from colorama import Fore
 import os
 
+# requiere instalar colorarma: 
+#         pip3 install colorama
+
 
 def cls() -> None:
-    command = 'clear'
+    """Limpia la terminal segun el sistema operativo"""
+
+    command: str = 'clear'
 
     if os.name in ('nt', 'dos'):
         command = 'cls'
@@ -12,46 +17,69 @@ def cls() -> None:
     os.system(command)
 
 
-def validate_option(options: list) -> int:
-    option: int = input("-> ")
+def validate_option(options: list) -> str:
+    """Valida si la opción esta en la lista de opciones
 
-    while(option not in options):
+    Args:
+        options (list): Lista con las opciones disponibles
+
+    Returns:
+        str: Opción elegida
+    """
+
+    option: str = input("-> ")
+
+    while (option not in options):
         option = input("Opción invalida, intente nuevamente: ")
 
     return option
 
 
 def turns(past_turn: str) -> str:
+    """ Recibe el turno pasado y devuelve el siguiente turno
+        si el turno anterior es un str vacio, elige uno al azar
+
+    Args:
+        past_turn (str): Turno anterior
+
+    Returns:
+        str: Turno siguiente
+    """
 
     if (past_turn == ''):
-        turn: int = random.choice(['B', 'R'])
+        next_turn: str = random.choice(['B', 'R'])
 
     else:
 
         if (past_turn == 'R'):
-            turn = 'B'
+            next_turn = 'B'
 
         else:
-            turn = 'R'
+            next_turn = 'R'
 
-    return turn
+    return next_turn
 
 
 def check_able_rows(board: dict, ables: list) -> list:
-
     """ Busca las secuencias de 3 slots seguidos disponibles en las 4 rows
+
+    Args:
+        board (dict): Tablero
+        ables (list): Lista con los slots disponibles segun el turno
 
     Returns:
         list: Secuencias encontradas
     """
+
     posible_rows: list = []
 
     for i in range(1,5):
+        row: list = [board[f'a{i}'], board[f'b{i}'], board[f'c{i}'], board[f'd{i}']]
 
-        if (board[f'a{i}'] in ables and board[f'b{i}'] in ables and board[f'c{i}'] in ables):
+        if (row[0] in ables and row[1] in ables and row[2] in ables):
             posible_rows.append([f'a{i}', f'b{i}', f'c{i}'])
         
-        if (board[f'b{i}'] in ables and board[f'c{i}']in ables and board[f'd{i}'] in ables):
+        if (row[1] in ables and row[2] in ables and row[3] in ables):
             posible_rows.append([f'b{i}', f'c{i}', f'd{i}'])
     
     return posible_rows
@@ -59,6 +87,9 @@ def check_able_rows(board: dict, ables: list) -> list:
 
 def check_able_columns(board: dict, ables: list) -> list:
     """ Busca las secuencias de 3 slots seguidos disponibles en forma vertical
+    Args:
+        board (dict): Tablero
+        ables (list): Lista con los slots disponibles segun el turno
 
     Returns:
         list: Secuencias encontradas
@@ -66,12 +97,13 @@ def check_able_columns(board: dict, ables: list) -> list:
     posible_columns: list = []
 
     for w in ['a','b','c','d']:
+        column: list = [board[f'{w}1'], board[f'{w}2'], board[f'{w}3'], board[f'{w}4']]
 
-        if (board[f'{w}1'] in ables and board[f'{w}2'] in ables and board[f'{w}3'] in ables):
-            posible_columns.append([f'{w}1',f'{w}2',f'{w}3'])
+        if (column[0] in ables and column[1] in ables and column[2] in ables):
+            posible_columns.append([f'{w}1', f'{w}2', f'{w}3'])
             
-        if (board[f'{w}2'] in ables and board[f'{w}3'] in ables and board[f'{w}4'] in ables):
-            posible_columns.append([f'{w}2',f'{w}3',f'{w}4'])
+        if (column[1] in ables and column[2] in ables and column[3] in ables):
+            posible_columns.append([f'{w}2', f'{w}3', f'{w}4'])
     
     return posible_columns
     
@@ -93,13 +125,14 @@ def check_slots(board: dict, row: list, places: list, posible_ls: list, able_slo
             posible_ls.append(row + [s])
     
 
-
 def check_rows_l(board: dict, able_rows: list, posible_ls: list, able_slots) -> None:
-    """ Busca las L's completas que se pueden posicionar y las almacena en 'posible_ls'
+    """ Busca las L's completas en forma horizontal que se pueden posicionar y las almacena en 'posible_ls'
 
     Args:
-        able_rows (list): Lista con las secuencias de 3 slots seguidos en forma
-        horizontal
+        board (dict): Tablero
+        able_rows (list): Secuencias completas disponibles en forma horizontal
+        posible_ls (list): Lista con las L completas posibles
+        able_slots (list): Lista con los slots disponibles segun el turno 
     """
 
     for row in able_rows:
@@ -119,6 +152,7 @@ def check_rows_l(board: dict, able_rows: list, posible_ls: list, able_slots) -> 
                 check_slots(board, row, ['b3', 'c3', 'd3'], posible_ls, able_slots)
                         
         else:
+            print(row)
             n_row: int = int(row[0][1]) #numero de row
             down_next_row: list = []
             up_next_row: list = []
@@ -140,11 +174,14 @@ def check_rows_l(board: dict, able_rows: list, posible_ls: list, able_slots) -> 
                 check_slots(board, row, up_next_row, posible_ls, able_slots)
 
 
+def check_columns_l(board: dict, able_columns: list, posible_ls: list, able_slots: list) -> None:
+    """ Busca las L's completas en forma vertical que se pueden posicionar y las almacena en 'posible_ls'
 
-def check_columns_l(board: dict, able_columns: list, posible_ls: list, able_slots) -> None:
-    """ Similar a la funcion 'check_row_l' busca las L posibles 
-        teniendo la secuencia de 3 slots en forma vertical
-
+    Args:
+        board (dict): Tablero
+        able_columns (list): Secuencias de 3 slots seguidos en forma vertical
+        posible_ls (list): Lista con las L completas posibles
+        able_slots (list): Lista de los slots disponibles segun el turno
     """
     right_next_col: list = []
     left_next_col: list = []
@@ -173,7 +210,6 @@ def check_columns_l(board: dict, able_columns: list, posible_ls: list, able_slot
             check_slots(board, col, left_next_col, posible_ls, able_slots)
  
 
-
 def is_l_in_posibles_l(pos: list, posible_ls: list) -> str:
     """ Verifica si una posicion de L esta en posible_ls
         si no la encuentra devuelve un str vacio
@@ -195,7 +231,7 @@ def is_l_in_posibles_l(pos: list, posible_ls: list) -> str:
             have_rep = True
 
     ###############################################################
-    
+
     if (not have_rep):
         for l_index, l in enumerate(posible_ls):
 
@@ -208,9 +244,17 @@ def is_l_in_posibles_l(pos: list, posible_ls: list) -> str:
     return index
 
 
-
-
 def find_posible_ls(board: dict, turn: str) -> list:
+    """ Busca las L posibles en el tablero
+
+    Args:
+        board (dict): Tablero
+        turn (str): Turno del jugador
+
+    Returns:
+        list: Movimientos de L posibles
+    """
+
     slots_ables: list = []
     posible_ls: list = []
 
@@ -252,13 +296,13 @@ def find_posible_ls(board: dict, turn: str) -> list:
     return posible_ls
 
 
-
-
 def change_l_pos(board: dict, pos: list, turn: str) -> None:
     """ Cambia la posicion de la L a las coordenadas a donde se la desea mover
 
     Args:
+        board (dict): Tablero
         pos (list): Coordenadas a donde se la quiere mover
+        turn (str): Turno del jugador
     """
     # primero limpio la posicion anterior de la L en el board
     for slot, value in board.items():
@@ -269,8 +313,14 @@ def change_l_pos(board: dict, pos: list, turn: str) -> None:
         board[slot] = turn
     
 
-
 def move_neutral(board: dict, turn: str) -> None:
+    """ Recibo el board actualizado y el turno del jugador
+        y pregunto si desea mover alguna ficha neutral
+
+    Args:
+        board (dict): Tablero
+        turn (str): Turno del jugador
+    """
 
     print("Desea mover una ficha neutral? (s/n)")
     move: str = validate_option(['s','n'])
@@ -294,13 +344,20 @@ def move_neutral(board: dict, turn: str) -> None:
             print("Esa posición no esta disponible, intente con otra")
             move_to = validate_option(board.keys())
 
-        for slot in board:
-            if (slot == move_to):
-                board[slot] = option
-
+        # muevo la ficha neutral a la posicion ingresada
+        board[move_to] = option
 
 
 def play(board: dict) -> str:
+    """ Recibo el board con las posiciones por defecto e inicio el juego
+
+    Args:
+        board (dict): Tablero
+
+    Returns:
+        str: Ganador de la partida
+    """
+
     turn: str = ''
     winner: str = ''
     
@@ -308,6 +365,7 @@ def play(board: dict) -> str:
     movements_counter: int = 0
     
     while (playing):
+        show_board(board)
         movements_counter += 1
         turn = turns(turn)
         posible_ls: list = find_posible_ls(board, turn)
@@ -328,6 +386,7 @@ def play(board: dict) -> str:
                 winner = 'R'
             
             playing = False
+        ####################################################################
             
         else:
     
@@ -338,6 +397,7 @@ def play(board: dict) -> str:
             
             movement: list = input("->").split(",")
 
+            # valido el movimiento ingresado
             index_l: str = is_l_in_posibles_l(movement, posible_ls)
 
             while (index_l == ''):
@@ -348,49 +408,54 @@ def play(board: dict) -> str:
                 movement: list = input("->").split(",")
                 index_l: str = is_l_in_posibles_l(movement, posible_ls)
 
+            # actualizo el tablero con la L ingresada
             change_l_pos(board, movement, turn)
             show_board(board)
             
-            #modo muerte súbita
-            if (movements_counter >= 20):
+            #   modo muerte súbita
+            if (movements_counter > 20):
                 show_board(board)
                 print("El juego esta en fase muerte subita!")
                 print("Luego de mover su L puede mover 2 fichas neutrales si lo desea")
                 move_neutral(board, turn)
                 move_neutral(board, turn)
-            
+            #############################
+
             else:
                 show_board(board)
                 move_neutral(board, turn)
                 
-
     return winner
           
 
-
 def show_board(board: list) -> None:
     cls()
+
+    ###### colorama  ############
     red: str = Fore.RED
     blue: str = Fore.BLUE
     black: str = Fore.BLACK
-    
+    reset: str = Fore.RESET
+    ############################
+
+    # creo un tablero auxiliar para no modificar el tablero original original
     board_aux: dict = {}
 
     for k, v in board.items():
         board_aux[k] = v
 
+    # reemplazo con colores los valores del tablero original auxiliar
     for k, v in board_aux.items():
         if (v == 'R'):
-            board_aux[k] = red + v + Fore.RESET
+            board_aux[k] = red + v + reset
 
         elif (v == 'B'):
-            board_aux[k] = blue + v + Fore.RESET
+            board_aux[k] = blue + v + reset
 
         elif (v in ['1','2']):
-            board_aux[k] = black + v + Fore.RESET
+            board_aux[k] = black + v + reset
 
-        
-
+    
     print(f"""
       A       B      C      D
      ___________________________
@@ -410,10 +475,13 @@ def show_board(board: list) -> None:
     """)
 
 
-
 def show_past_4_scores(scores_history: list) -> None:
+    """ Recibe una lista con todos los scores de las partidas qu se hayan jugado
+    y las procesa para solo mostrar los ultimos 4 scores """
+
     cls()
     players_info: dict = {'Azul': 0, 'Rojo': 0}
+
     # doy vuelta la lista ya que los ultimos scores almacenan en 'scores_history' -
     # en las ultimas posiciones de la lista
     scores_history.reverse()
@@ -423,6 +491,7 @@ def show_past_4_scores(scores_history: list) -> None:
 
         for i in range(0,4):
             last_4_scores.append(scores_history[i])
+    
     else:
 
         for score in scores_history:
@@ -432,14 +501,13 @@ def show_past_4_scores(scores_history: list) -> None:
 
         if (score == 'R'):
             players_info['Rojo'] += 1
+        
         else:
             players_info['Azul'] += 1
 
     #ordeno los scores por el jugador con mas victorias
     ordered_info: list = sorted(players_info.items(), key=lambda x: x[1], reverse=True)
 
-
-    
     print(f"""
  ____________________________
 |      ULTIMOS 4 SCORES      |      
@@ -451,9 +519,9 @@ def show_past_4_scores(scores_history: list) -> None:
 |                            |
  ----------------------------
     """)
+
     input("Pulse ENTER para volver al menu ")
 
-    
 
 def main() -> None:
     v : str= ' ' # Slot disponible
@@ -462,11 +530,9 @@ def main() -> None:
     n_1: str = '1' # Ficha neutral 1
     n_2: str = '2' # Ficha neutral 2
 
-
     scores_history: list = []
 
     flag: bool = True
-    
 
     while(flag):
         board = {   
@@ -474,17 +540,17 @@ def main() -> None:
                 'a2': v, 'b2': b,'c2': r, 'd2': v,
                 'a3': v, 'b3': b,'c3': r, 'd3': v,
                 'a4': v, 'b4': b,'c4': b, 'd4': n_2 
-            }
+                }
 
         cls()
 
         print("""
-    ╔╗        ╔═══╗╔═══╗╔═╗╔═╗╔═══╗
-    ║║        ║╔═╗║║╔═╗║║║╚╝║║║╔══╝
-    ║║        ║║ ╚╝║║ ║║║╔╗╔╗║║╚══╗
-    ║║ ╔╗╔═══╗║║╔═╗║╚═╝║║║║║║║║╔══╝
-    ║╚═╝║╚═══╝║╚╩═║║╔═╗║║║║║║║║╚══╗
-    ╚═══╝     ╚═══╝╚╝ ╚╝╚╝╚╝╚╝╚═══╝              
+╔╗        ╔═══╗╔═══╗╔═╗╔═╗╔═══╗
+║║        ║╔═╗║║╔═╗║║║╚╝║║║╔══╝
+║║        ║║ ╚╝║║ ║║║╔╗╔╗║║╚══╗
+║║ ╔╗╔═══╗║║╔═╗║╚═╝║║║║║║║║╔══╝
+║╚═╝║╚═══╝║╚╩═║║╔═╗║║║║║║║║╚══╗
+╚═══╝     ╚═══╝╚╝ ╚╝╚╝╚╝╚╝╚═══╝              
     """)
 
         
@@ -496,7 +562,6 @@ def main() -> None:
         option: str = validate_option(['1', '2', '3'])
        
         if (option == '1'):
-            show_board(board)
             winner: str = play(board)
             scores_history.append(winner)
 
@@ -505,6 +570,5 @@ def main() -> None:
 
         elif (option == '3'):
             flag = False
-    
 
 main()
